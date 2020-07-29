@@ -54,6 +54,7 @@ public class BoardServiceImpl implements IF_BoardService {
 	@Transactional
 	@Override
 	public void deleteBoard(Integer bno) throws Exception {
+		boardDAO.deleteBoardReply(bno);
 		boardDAO.deleteAttach(bno);
 		boardDAO.deleteBoard(bno);
 	}
