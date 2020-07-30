@@ -44,7 +44,11 @@
 				</c:if>
 			</ul>
 			<p class="btn_line txt_right">
-			`
+			`<c:if test="${session_enabled != null}">
+             <a href="javascript:;" id="deleteBno" class="btn_bbs">삭제</a>
+            <a href="/board/update?page=${pageVO.page}&amp;&bno=${boardVO.bno}" class="btn_bbs">수정</a>
+         </c:if>
+			
 				<a href="/board/list?page=${pageVO.page}" class="btn_bbs">목록</a>
 			</p>
 		</div>

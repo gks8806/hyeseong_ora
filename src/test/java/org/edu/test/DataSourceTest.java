@@ -36,15 +36,15 @@ public class DataSourceTest {
    
    @Test
    public void testDeleteMember() throws Exception {
-	   memberService.deleteMember("user02");
+	   memberService.deleteMember("user03");
 	   
    }
    
    @Test
    public void testUpdateMember() throws Exception {
 	   MemberVO memberVO = new MemberVO();
-	   memberVO.setUser_id("user02");
-	   memberVO.setUser_pw("1234");
+	   memberVO.setUser_id("user03");
+	   memberVO.setUser_pw("4321");
 	   memberVO.setUser_name("한혜성");
 	   memberVO.setEmail("HHS1212@naver.com");
 	   memberVO.setPoint(100);

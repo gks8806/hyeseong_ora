@@ -19,11 +19,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<sql id="sqlwhere">
 	<if test="searchType !=null"><!-- null이 아닐 때 실행-->
 		AND (
-		title LIKE CONCAT('%',#{searchKeyword},'%')
+		title LIKE '%'||#{searchKeyword}||'%'
 		OR
-		content LIKE CONCAT('%',#{searchKeyword},'%')
+		content LIKE '%'||#{searchKeyword}||'%'
 		OR
-		writer LIKE CONCAT('%',#{searchKeyword},'%')
+		writer LIKE '%'||#{searchKeyword}||'%'
 		)
 		</if>
 	</sql>
@@ -34,7 +34,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			SELECT SEQ_BNO.nextval FROM DUAL	
 		</selectKey>
 		insert into tbl_board (bno,title,content,writer,regdate,view_count,reply_count) 
-		values (#{bno},#{title},#{content},#{writer},now(),#{view_count},#{reply_count}) 
+		values (#{bno},#{title},#{content},#{writer},sysdate,#{view_count},#{reply_count}) 
 	</insert>
 	<select id="selectBoard" resultType="org.edu.vo.BoardVO">  
 		<![CDATA[
@@ -60,22 +60,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="countBno" resultType="int">
 		select count(*) from tbl_board
 		where 1 = 1
-		<if test="searchType !=null"><!-- null이 아닐 때 실행-->
-		AND (
-		title LIke CONCAT('%',#{searchKeyword},'%')
-		OR
-		content LIkE CONCAT('%',#{searchKeyword},'%')
-		OR
-		writer LIKE CONCAT('%',#{searchKeyword},'%')
-		)
-		</if>
+		<include refid="sqlwhere"></include>
 	</select>
 	<update id="updateBoard">
 		update tbl_board set
 		title = #{title},
 		content = #{content},
 		writer = #{writer},
-		update_date = now(),
+		update_date = sysdate,
 		view_count = #{view_count},
 		reply_count = #{reply_count}
 		where bno = #{bno}
@@ -96,10 +88,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	insert into tbl_attach(full_name, bno) values (#{fullname},LAST_INSERT_ID())
 	</insert>
 	-->
-	<!-- 첨부파일 HSql용-->
+	
+	<!-- 첨부파일 HSql용
 	<insert id="insertAttach">
 	insert into tbl_attach(full_name, bno) values (#{fullname}, (select top 1 bno from tbl_board order by bno desc) )
 	</insert> 
+	-->
+	<!-- 첨부파일 Oracle용에서 사용되는 최근게시물 번호-->
+	<select id="selectTopBno" resultType="int">
+		select bno from tbl_board where rownum=1 order by bno desc
+	</select>
+	<!-- 첨부파일 Oracle용-->
+	<insert id="insertAttach">
+		insert into tbl_attach(full_name, bno) values (#{fullname}, #{bno})
+	</insert>
 	<select id="selectAttach" resultType="string">
 	select full_name from tbl_attach where bno = #{bno} order by regdate
 	</select>
