@@ -17,14 +17,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="org.edu.dao.IF_BoardDAO">
 	<!-- 공통사용 검색쿼리 -->
 	<sql id="sqlwhere">
-	<if test="searchType !=null"><!-- null이 아닐 때 실행-->
-		AND (
-		title LIKE '%'||#{searchKeyword}||'%'
-		OR
-		content LIKE '%'||#{searchKeyword}||'%'
-		OR
-		writer LIKE '%'||#{searchKeyword}||'%'
-		)
+		<if test="searchType !=null"><!-- null이 아닐 때 실행-->
+			AND (
+			title LIKE '%'||#{searchKeyword}||'%'
+			OR
+			content LIKE '%'||#{searchKeyword}||'%'
+			OR
+			writer LIKE '%'||#{searchKeyword}||'%'
+			)
+		</if>
+		<if test="searchBoard !=null and !searchBoard.equals('')"><!-- null이 아닐 때 실행-->
+			AND (
+			bod_type = #{searchBoard}		
+			)
 		</if>
 	</sql>
 	<!--  mybatis 오카클용 추가-->
@@ -33,18 +38,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		<selectKey keyProperty="bno" resultType="int" order="BEFORE">
 			SELECT SEQ_BNO.nextval FROM DUAL	
 		</selectKey>
-		insert into tbl_board (bno,title,content,writer,regdate,view_count,reply_count) 
-		values (#{bno},#{title},#{content},#{writer},sysdate,#{view_count},#{reply_count}) 
+		insert into tbl_board (bno,title,content,writer,regdate,view_count,reply_count,bod_type) 
+		values (#{bno},#{title},#{content},#{writer},sysdate,#{view_count},#{reply_count},#{bod_type}) 
 	</insert>
 	<select id="selectBoard" resultType="org.edu.vo.BoardVO">  
 		<![CDATA[
 		SELECT T_Z.*
 			FROM
-			(
-			SELECT ROWNUM AS RNUM, T_A.*
-			FROM
-			   (SELECT * FROM TBL_BOARD
-			   WHERE 1 = 1
+				(
+				SELECT ROWNUM AS RNUM, T_A.*
+				FROM
+			   		(SELECT * FROM TBL_BOARD
+			   		WHERE 1 = 1
 		]]>
 			   <include refid="sqlwhere"></include>
 		<![CDATA[
@@ -69,7 +74,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		writer = #{writer},
 		update_date = sysdate,
 		view_count = #{view_count},
-		reply_count = #{reply_count}
+		reply_count = #{reply_count},
+		bod_type = #{bod_type}
 		where bno = #{bno}
 	</update>
 	<delete id="deleteBoard">
@@ -96,7 +102,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	-->
 	<!-- 첨부파일 Oracle용에서 사용되는 최근게시물 번호-->
 	<select id="selectTopBno" resultType="int">
-		select bno from tbl_board where rownum=1 order by bno desc
+		select bno from (
+    		select bno from tbl_board order by bno desc
+		) T_A
+		where ROWNUM = 1
 	</select>
 	<!-- 첨부파일 Oracle용-->
 	<insert id="insertAttach">

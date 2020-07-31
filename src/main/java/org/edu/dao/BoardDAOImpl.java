@@ -45,8 +45,11 @@ public class BoardDAOImpl implements IF_BoardDAO {
 	}
 
 	@Override
-	public void insertAttach(String fullName) throws Exception {
-		sqlSession.insert(mapperQuery + ".insertAttach", fullName);
+	public void insertAttach(String fullName, Integer bno) throws Exception {
+		Map<String, Object> paramMap = new HashMap<String, Object>(); //매개변수 2개인 값을 넣기위해
+		paramMap.put("bno", bno);//paramMap 변수지정해서 메서드구현
+		paramMap.put("fullname", fullName);
+		sqlSession.insert(mapperQuery + ".insertAttach", paramMap);
 	}
 
 	@Override
@@ -83,6 +86,11 @@ public class BoardDAOImpl implements IF_BoardDAO {
 	public void deleteBoardReply(Integer bno) throws Exception {
 		sqlSession.delete(mapperQuery + ".deleteBoardReply" , bno);
 		
+	}
+
+	@Override
+	public int selectTopBno() throws Exception {
+		return sqlSession.selectOne(mapperQuery + ".selectTopBno");
 	}
 
 	

@@ -9,7 +9,9 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.edu.service.IF_BoardService;
@@ -49,7 +51,16 @@ public class AdminController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(value = "/board/list", method = RequestMethod.GET)
-	public String boardList(@ModelAttribute("pageVO") PageVO pageVO, Locale locale, Model model) throws Exception {
+	public String boardList(@ModelAttribute("pageVO") PageVO pageVO, Locale locale, Model model, HttpServletRequest request) throws Exception {
+		//초기 메뉴를 클릭시 /admin/board/list?searchBoard=notice 데이터
+		HttpSession session = request.getSession();
+		if(pageVO.getSearchBoard() != null) {
+			session.setAttribute("session_bod_type", pageVO.getSearchBoard());
+		}else {
+			//일반링크 클릭시 /admin/board/view?page=2... 데이터 전송
+			//만드렁진 세션 사용(아래)
+			pageVO.setSearchBoard((String) session.getAttribute("session_bod_type"));
+		}
 		//PageVO pageVO = new PageVO(); //매개변수로 받기전에 테스트용
 		if(pageVO.getPage() == null) {
 			pageVO.setPage(1);//초기 page변수값 지정

@@ -162,7 +162,14 @@ public class HomeController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(value = "/board/list", method = RequestMethod.GET)
-	public String boardList(@ModelAttribute("pageVO") PageVO pageVO, Locale locale, Model model) throws Exception {
+	public String boardList(@ModelAttribute("pageVO") PageVO pageVO, Locale locale, Model model, HttpServletRequest request) throws Exception {
+		//초기 메뉴를 클릭시 /admin/board/list?searchBoard=notice 데이터
+		HttpSession session = request.getSession();
+		if(pageVO.getSearchBoard() != null) {
+			session.setAttribute("session_bod_type", pageVO.getSearchBoard());
+		}else {
+			pageVO.setSearchBoard((String) session.getAttribute("session_bod_type"));
+		}
 		//PageVO pageVO = new PageVO(); //매개변수로 받기전에 테스트용
 		if(pageVO.getPage() == null) {
 			pageVO.setPage(1);//초기 page변수값 지정
@@ -210,7 +217,6 @@ public class HomeController {
 				session.setAttribute("session_enabled", enabled);//인증확인
 				session.setAttribute("session_userid", userid);//사용자아이디
 				session.setAttribute("session_levels", levels);//사용자권한
-				
 				//=========== 삳단은 스프링시큐리티에서 기본제공하는 세션 변수처리
 				//=========== 하단은 우리가 추가하는 세션 변수처리
 				//회원이름 구하기 추가
@@ -303,10 +309,13 @@ public class HomeController {
 		}
 		pageVO.setPerPageNum(5); //1페이지당 보여줄 게시물 강제지정
 		pageVO.setTotalCount(boardService.countBno(pageVO));//강제로 입력한 값을 쿼리로 대체할 예정
-		List<BoardVO> list = boardService.selectBoard(pageVO);
-		//첨부파일 출력 때문에 추가 Start
+		pageVO.setSearchBoard("gallery");
+		List<BoardVO> listGallery = boardService.selectBoard(pageVO);
+		pageVO.setSearchBoard("notice");
+		List<BoardVO> listNotice = boardService.selectBoard(pageVO);
+		//첨부파일 출력 때문에 추가 Start -- 갤러리에서만 필요 
 		List<BoardVO> boardListFiles = new ArrayList<BoardVO>();
-		for(BoardVO vo:list) {
+		for(BoardVO vo:listGallery) {
 			List<String> files = boardService.selectAttach(vo.getBno());
 			String[] filenames = new String[files.size()];
 			int cnt = 0;
@@ -318,9 +327,8 @@ public class HomeController {
 		}
 		model.addAttribute("extNameArray", fileDataUtil.getExtNameArray());//첨부파일이 이미지인지 문서파일인지 구분하는 jsp
 		//첨부파일 출력 때문에 추가 End 
-		 
-		
-		model.addAttribute("boardList", boardListFiles);//첨부파일 출력때문에 추가 
+		model.addAttribute("boardListGallery", boardListFiles);//첨부파일 속성
+		model.addAttribute("boardListNotice", listNotice);
 		return "home";
 	}
 	
