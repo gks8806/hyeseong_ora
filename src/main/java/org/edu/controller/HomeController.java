@@ -21,10 +21,10 @@ import org.edu.vo.MemberVO;
 import org.edu.vo.PageVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication; //Authentication은 인증 정보를 의미하는 인터페이스다
-import org.springframework.security.core.GrantedAuthority;//GrantedAuthority를 ​​"허가"또는 "권리"라고 생각하십시오. 이러한 "권한"은 (보통) 문자열로 표현됩니다 (getAuthority() 메소드 사용). 이러한 문자열을 통해 사용 권한을 식별하고 유권자가 무언가에 대한 액세스 권한을 부여할지 여부를 결정할 수 있습니다.
-import org.springframework.security.core.context.SecurityContextHolder;//모든 접근 주체는 Authentication을 생성한다.이것은 SecuriyContext에 접근 주체(Authentication)와 인증정보(GrantedAuthority)을 담겨져 사용된다.현재 로그인한 사용자 정보를 가지고 있는 바스켓(?)이라 생각하면 될 듯 하다.ThreadLocal에 보관되며, SecurityContextHolder를 통해 접근할 수 있다.
-import org.springframework.security.core.userdetails.UserDetails;//아이디,암호 체크
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -41,7 +41,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class HomeController {
 	
 	@Inject
-	private IF_MemberService memberService; 
+	private IF_MemberService memberService;
 	
 	@Inject
 	private IF_BoardService boardService;
@@ -50,7 +50,7 @@ public class HomeController {
 	private FileDataUtil fileDataUtil;
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
-
+	
 	/**
 	 * 게시물관리 > 삭제 입니다.
 	 * @throws Exception 
@@ -58,7 +58,9 @@ public class HomeController {
 	@RequestMapping(value = "/board/delete", method = RequestMethod.POST)
 	public String boardDelete(@RequestParam("bno") Integer bno, Locale locale, RedirectAttributes rdat) throws Exception {
 		List<String> files = boardService.selectAttach(bno);
+		
 		boardService.deleteBoard(bno);
+		
 		//첨부파일 삭제(아래)
 		for(String fileName : files) {
 			//삭제 명령문 추가(아래)
@@ -66,7 +68,7 @@ public class HomeController {
 			if(target.exists()) {
 				target.delete();
 			}
-		}
+		}		
 		
 		rdat.addFlashAttribute("msg", "삭제");
 		return "redirect:/board/list";
@@ -80,30 +82,28 @@ public class HomeController {
 	public String boardUpdate(@ModelAttribute("pageVO") PageVO pageVO, @RequestParam("bno") Integer bno, Locale locale, Model model) throws Exception {
 		BoardVO boardVO = boardService.viewBoard(bno);
 		model.addAttribute("boardVO", boardVO);
-		model.addAttribute("pageVO",pageVO);
-		return "/board/board_update";
+		model.addAttribute("pageVO", pageVO);
+		return "board/board_update";
 	}
 	@RequestMapping(value = "/board/update", method = RequestMethod.POST)
-	public String boardUpdate(@ModelAttribute("pageVO") PageVO pageVO, MultipartFile file, @Valid BoardVO boardVO,Locale locale, RedirectAttributes rdat) throws Exception {
-		if(file.getOriginalFilename() == "") {//조건:첨부파이 전송 값이 없다면
+	public String boardUpdate(@ModelAttribute("pageVO") PageVO pageVO, MultipartFile file,@Valid BoardVO boardVO,Locale locale, RedirectAttributes rdat) throws Exception {
+		if(file.getOriginalFilename() == "") {//조건:첨부파일 전송 값이 없다면
 			boardService.updateBoard(boardVO);
-		}else {
-			//이전 첨부파일 삭제처리(아래)
+		} else {
+			//기존등록된 첨부파일 삭제처리(아래)
 			List<String> delFiles = boardService.selectAttach(boardVO.getBno());
 			for(String fileName : delFiles) {
-				//삭제 명령문 추가(아래)
+				//실제파일 삭제
 				File target = new File(fileDataUtil.getUploadpath(), fileName);
-				if(target.exists()) { //조건 :해당경로에 파일명이 존재하면
-					target.delete(); //퍼알석재
+				if(target.exists()) { //조건:해당경로에 파일명이 존재하면
+					target.delete();  //파일삭제
 				}//End if
 			}//End for
-			//아래서 부터 신규 파일 업로드
-			String[] files = fileDataUtil.fileUpload(file);//실제 파일업로드후 파일명 리턴
+			//아래 신규파일 업로드
+			String[] files = fileDataUtil.fileUpload(file);//실제파일업로드후 파일명 리턴
 			boardVO.setFiles(files);//데이터베이스 <-> VO(get,set) <-> DAO클래스
 			boardService.updateBoard(boardVO);
 		}//End if
-		
-		
 		rdat.addFlashAttribute("msg", "수정");
 		return "redirect:/board/view?bno=" + boardVO.getBno() + "&page=" + pageVO.getPage();
 	}
@@ -119,14 +119,14 @@ public class HomeController {
 	}
 	@RequestMapping(value = "/board/write", method = RequestMethod.POST)
 	public String boardWrite(MultipartFile file,@Valid BoardVO boardVO,Locale locale, RedirectAttributes rdat) throws Exception {
-		//System.out.println("===첨부파일없이저장=-=" +file)
+		//System.out.println("========첨부파일없이 저장===" + file.getOriginalFilename());
 		if(file.getOriginalFilename() == "") {
 			//첨부파일 없이 저장
-			boardService.insertBoard(boardVO); 
+			boardService.insertBoard(boardVO);
 		}else {
 			String[] files = fileDataUtil.fileUpload(file);
 			boardVO.setFiles(files);
-			boardService.insertBoard(boardVO);	
+			boardService.insertBoard(boardVO);			
 		}
 		rdat.addFlashAttribute("msg", "입력");
 		return "redirect:/board/list";
@@ -136,46 +136,50 @@ public class HomeController {
 	 * 게시물관리 상세보기 입니다.
 	 * @throws Exception 
 	 */
-	 @RequestMapping(value = "/board/view", method = RequestMethod.GET)
-	   public String boardView(@ModelAttribute("pageVO") PageVO pageVO, @RequestParam("bno") Integer bno,Locale locale, Model model) throws Exception {
-	      BoardVO boardVO = boardService.viewBoard(bno);
-	      //여기서 부터 첨부파일명 때문에 추가
-	      List<String> files = boardService.selectAttach(bno);
-			String[] filenames = new String[files.size()];
-			int cnt = 0;
-			for(String fileName : files) {
-				filenames[cnt++] = fileName; 
-			}
-	      
-	      //여러개 파일에서 1개 파일만 받는 것으로 변경
-	      //String[] filenames = new String[] {files};
-	      boardVO.setFiles(filenames);//String[]
-	      //여기까지 첨부파일때문에 추가
-	      model.addAttribute("boardVO", boardVO);
-	      model.addAttribute("pageVO", pageVO);
-	      model.addAttribute("extNameArray", fileDataUtil.getExtNameArray());
-	      return "board/board_view";
-	   }
-	 
+	@RequestMapping(value = "/board/view", method = RequestMethod.GET)
+	public String boardView(@ModelAttribute("pageVO") PageVO pageVO, @RequestParam("bno") Integer bno,Locale locale, Model model, HttpServletRequest request) throws Exception {
+		HttpSession session = request.getSession();
+		if(pageVO.getSearchBoard() != null) {
+			session.setAttribute("session_bod_type", pageVO.getSearchBoard());
+		} else {
+			pageVO.setSearchBoard((String) session.getAttribute("session_bod_type"));
+		}
+		BoardVO boardVO = boardService.viewBoard(bno);
+		//여기서 부터 첨부파일명 때문에 추가
+		List<String> files = boardService.selectAttach(bno);
+		String[] filenames = new String[files.size()];
+		int cnt = 0;
+		for(String fileName : files) {
+			filenames[cnt++] = fileName;
+		}
+		//여러개 파일에서 1개 파일만 받는 것으로 변경
+		//String[] filenames = new String[] {files};
+		boardVO.setFiles(filenames);//String[]
+		//여기까지 첨부파일때문에 추가
+		model.addAttribute("boardVO", boardVO);
+		model.addAttribute("pageVO", pageVO);
+		model.addAttribute("extNameArray", fileDataUtil.getExtNameArray());
+		return "board/board_view";
+	}
+	
 	/**
 	 * 게시물관리 리스트 입니다.
 	 * @throws Exception 
 	 */
 	@RequestMapping(value = "/board/list", method = RequestMethod.GET)
 	public String boardList(@ModelAttribute("pageVO") PageVO pageVO, Locale locale, Model model, HttpServletRequest request) throws Exception {
-		//초기 메뉴를 클릭시 /admin/board/list?searchBoard=notice 데이터
 		HttpSession session = request.getSession();
 		if(pageVO.getSearchBoard() != null) {
 			session.setAttribute("session_bod_type", pageVO.getSearchBoard());
-		}else {
+		} else {
 			pageVO.setSearchBoard((String) session.getAttribute("session_bod_type"));
 		}
-		//PageVO pageVO = new PageVO(); //매개변수로 받기전에 테스트용
+		//PageVO pageVO = new PageVO();//매개변수로 받기전 테스트용
 		if(pageVO.getPage() == null) {
 			pageVO.setPage(1);//초기 page변수값 지정
 		}
-		pageVO.setPerPageNum(10); //1페이지당 보여줄 게시물 강제지정
-		pageVO.setTotalCount(boardService.countBno(pageVO));//강제로 입력한 값을 쿼리로 대체할 예정
+		pageVO.setPerPageNum(10);//1페이지당 보여줄 게시물 수 강제지정
+		pageVO.setTotalCount(boardService.countBno(pageVO));//강제로 입력한 값을 쿼리로 대체OK.
 		List<BoardVO> list = boardService.selectBoard(pageVO);
 		//모델클래스로 jsp화면으로 boardService에서 셀렉트한 list값을 boardList변수명으로 보낸다.
 		//model { list -> boardList -> jsp }
@@ -185,49 +189,48 @@ public class HomeController {
 	}
 	
 	/**
-	 * 스프링 시큐리티 security-context.xml설정한 로그인 처리 결과 화면
+	 * 스프링 시큐리티 secutiry-context.xml설정한 로그인 처리 결과 화면
+	 * @param locale
+	 * @param request
+	 * @param rdat
+	 * @return
 	 * @throws Exception 
 	 */
-	
 	@RequestMapping(value = "/login_success", method = RequestMethod.GET)
-		public String login_success(Locale locale,HttpServletRequest request, RedirectAttributes rdat) throws Exception {
-			logger.info("Welcome login_success! The client locale is {}.", locale);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			//Authentication 1. 인증처리 (enabled을 통해 아이디 암호비교) , 2 권한 체크 
-			String userid = "";//유저아이디
-			String levels = "";//ROLE_ANONYMOUS
-			Boolean enabled = false;
-			Object principal = authentication.getPrincipal();//Principal 구현
-			if (principal instanceof UserDetails) {
-				//인증이 처리되는 로직(아이디,암호를 스프링 시큐리티에 던져주고 인증은 스프링에서 알아서 해줌)
-				enabled = ((UserDetails)principal).isEnabled();
-			}
-			HttpSession session = request.getSession(); //세션을 초기화 시켜줌.
-			if (enabled) { //인증처리가 완료된 사용자의 권한체크(아래)
-				Collection<? extends GrantedAuthority>  authorities = authentication.getAuthorities();
-				if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_ANONYMOUS")).findAny().isPresent())
-				{levels = "ROLE_ANONYMOUS";}
-				if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_USER,")).findAny().isPresent())
-				{levels = "ROLE_USER,";}
-				if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_ADMIN")).findAny().isPresent())
-				{levels = "ROLE_ADMIN";}
-				userid =((UserDetails)principal).getUsername();
-				
-				//로그인 세션 저장 
-				session.setAttribute("session_enabled", enabled);//인증확인
-				session.setAttribute("session_userid", userid);//사용자아이디
-				session.setAttribute("session_levels", levels);//사용자권한
-				//=========== 삳단은 스프링시큐리티에서 기본제공하는 세션 변수처리
-				//=========== 하단은 우리가 추가하는 세션 변수처리
-				//회원이름 구하기 추가
-				String username = "";//이름
-				MemberVO memberVO = memberService.viewMember(userid);
-				session.setAttribute("session_username", memberVO.getUser_name());//사용자명
-	        	}
-			rdat.addFlashAttribute("msg", "로그인");//result 데이터를 숨겨서 전송
-			return "redirect:/";//새로고침 자동 등록 방지를 위해서 아래처럼 처리
+	public String login_success(Locale locale,HttpServletRequest request, RedirectAttributes rdat) throws Exception {
+		logger.info("Welcome login_success! The client locale is {}.", locale);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String userid = "";//아이디
+		String levels = "";//ROLE_ANONYMOUS
+		Boolean enabled = false;
+		Object principal = authentication.getPrincipal();
+		if (principal instanceof UserDetails) {
+			//인증이 처리되는 로직(아이디,암호를 스프링시큐리티 던져주고 인증은 스프링에서 알아서 해줌.)
+			enabled = ((UserDetails)principal).isEnabled();
 		}
-	
+		HttpSession session = request.getSession();//세션을 초기화 시켜줌.
+		if (enabled) { //인증처리가 완료된 사용자의 권한체크(아래)
+			Collection<? extends GrantedAuthority>  authorities = authentication.getAuthorities();
+			if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_ANONYMOUS")).findAny().isPresent())
+			{levels = "ROLE_ANONYMOUS";}
+			if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_USER,")).findAny().isPresent())
+			{levels = "ROLE_USER,";}
+			if(authorities.stream().filter(o -> o.getAuthority().equals("ROLE_ADMIN")).findAny().isPresent())
+			{levels = "ROLE_ADMIN";}
+			userid =((UserDetails)principal).getUsername();
+			//로그인 세션 저장
+			session.setAttribute("session_enabled", enabled);//인증확인
+			session.setAttribute("session_userid", userid);//사용자아이디
+			session.setAttribute("session_levels", levels);//사용자권한
+			//=========== 상단은 스프링시큐리티에서 기본제공하는 세션 변수처리
+			//=========== 하단은 우리가 추가한는 세션 변수처리
+			//회원이름 구하기 추가
+			MemberVO memberVO = memberService.viewMember(userid);
+			session.setAttribute("session_username", memberVO.getUser_name());//사용자명
+        	}
+		rdat.addFlashAttribute("msg", "로그인");//result 데이터를 숨겨서 전송
+		return "redirect:/";//새로고침 자동 등록 방지를 위해서 아래처럼 처리
+	}
 	
 	/**
 	 * 로그인 페이지 파일 입니다.
@@ -239,39 +242,43 @@ public class HomeController {
 	}
 	
 	/**
-	 * slide 페이지 파일 입니다.
+	 * 슬라이드 페이지 파일 입니다.
 	 */
 	@RequestMapping(value = "/sample/slide", method = RequestMethod.GET)
 	public String slide(Locale locale, Model model) {
 		
 		return "sample/slide";
 	}
+	
 	/**
-	 * contactus 페이지 파일 입니다.
+	 * CONTACT US 페이지 파일 입니다.
 	 */
 	@RequestMapping(value = "/sample/contactus", method = RequestMethod.GET)
 	public String contactus(Locale locale, Model model) {
 		
 		return "sample/contactus";
 	}
+	
 	/**
-	 * blog 페이지 파일 입니다.
+	 * BLOG 페이지 파일 입니다.
 	 */
 	@RequestMapping(value = "/sample/blog", method = RequestMethod.GET)
 	public String blog(Locale locale, Model model) {
 		
 		return "sample/blog";
 	}
+	
 	/**
-	 * work 페이지 파일 입니다.
+	 * WORK 페이지 파일 입니다.
 	 */
 	@RequestMapping(value = "/sample/work", method = RequestMethod.GET)
 	public String work(Locale locale, Model model) {
 		
 		return "sample/work";
 	}
+	
 	/**
-	 * weare 페이지 파일 입니다.
+	 * we are 페이지 파일 입니다.
 	 */
 	@RequestMapping(value = "/sample/weare", method = RequestMethod.GET)
 	public String weare(Locale locale, Model model) {
@@ -280,12 +287,12 @@ public class HomeController {
 	}
 	
 	/**
-	 * html5테스트 파일 입니다.
+	 * html5 테스트용 파일 입니다.
 	 */
-	@RequestMapping(value = "/sample/HTMLTEST", method = RequestMethod.GET)
-	public String HTMLTEST(Locale locale, Model model) {
+	@RequestMapping(value = "/sample/htmltest", method = RequestMethod.GET)
+	public String htmltest(Locale locale, Model model) {
 		
-		return "sample/HTMLTEST";
+		return "sample/htmltest";
 	}
 	
 	/**
@@ -307,13 +314,14 @@ public class HomeController {
 		if(pageVO.getPage() == null) {
 			pageVO.setPage(1);//초기 page변수값 지정
 		}
-		pageVO.setPerPageNum(5); //1페이지당 보여줄 게시물 강제지정
-		pageVO.setTotalCount(boardService.countBno(pageVO));//강제로 입력한 값을 쿼리로 대체할 예정
+		pageVO.setPerPageNum(5);//1페이지당 보여줄 게시물 수 강제지정
+		pageVO.setTotalCount(boardService.countBno(pageVO));//강제로 입력한 값을 쿼리로 대체OK.
+		
 		pageVO.setSearchBoard("gallery");
 		List<BoardVO> listGallery = boardService.selectBoard(pageVO);
 		pageVO.setSearchBoard("notice");
 		List<BoardVO> listNotice = boardService.selectBoard(pageVO);
-		//첨부파일 출력 때문에 추가 Start -- 갤러리에서만 필요 
+		//첨부파일 출력 때문에 추가 Start -- 갤러리에서만 필요
 		List<BoardVO> boardListFiles = new ArrayList<BoardVO>();
 		for(BoardVO vo:listGallery) {
 			List<String> files = boardService.selectAttach(vo.getBno());
@@ -322,15 +330,14 @@ public class HomeController {
 			for(String fileName : files) {
 				filenames[cnt++] = fileName;
 			}
-			vo.setFiles(filenames);//여기까지는 view 상세보기와 똑같다
+			vo.setFiles(filenames);//여기까지는 view상세보기와 똑같다
 			boardListFiles.add(vo);//상세보기에서 추가된 항목
 		}
-		model.addAttribute("extNameArray", fileDataUtil.getExtNameArray());//첨부파일이 이미지인지 문서파일인지 구분하는 jsp
-		//첨부파일 출력 때문에 추가 End 
-		model.addAttribute("boardListGallery", boardListFiles);//첨부파일 속성
+		model.addAttribute("extNameArray", fileDataUtil.getExtNameArray());//첨부파일이 이미지인지 문서파일인 구분용 jsp변수
+		//첨부파일 출력 때문에 추가 End
+		model.addAttribute("boardListGallery", boardListFiles);
 		model.addAttribute("boardListNotice", listNotice);
 		return "home";
 	}
 	
 }
-
