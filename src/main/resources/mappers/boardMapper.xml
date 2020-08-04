@@ -124,6 +124,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	insert into tbl_attach(full_name, bno) values (#{fullname}, #{bno})
 	</insert>
 	<!-- 게시판 생성(아래) -->
+	<select id="viewBoardType" resultType="org.edu.vo.BoardTypeVO">
+		select * from tbl_board_type where bod_type = #{bod_type}
+	</select>
 	<select id="selectBoardType" resultType="org.edu.vo.BoardTypeVO">
 		select * from tbl_board_type order by bod_sun asc
 	</select>

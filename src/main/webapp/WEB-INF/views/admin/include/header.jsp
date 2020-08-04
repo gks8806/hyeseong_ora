@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
 <script>
 if('${msg}' != ""){
-	alert("${msg} 에 성공하였습니다.!");
+   alert("${msg} 에 성공하였습니다.!");
 }
 </script>
 <!-- jQuery코어 -->
@@ -106,36 +106,41 @@ if('${msg}' != ""){
                   <p>회원관리</p>
                 </a>
               </li>
-              
+              <li class="nav-item">
+                <a href="/admin/bodtype/list" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>게시판생성</p>
+                </a>
+              </li>
               <li class="nav-item has-treeview">
                 <a href="#" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
                   <p>게시판관리
-                  	<i class="right fas fa-angle-left"></i>
+                     <i class="right fas fa-angle-left"></i>
                   </p>
                 </a>
-	            <ul class="nav nav-treeview">
-		              <c:forEach items="${boardTypeMenu}" var="boardTypeMenu" >
-			              <li class="nav-item">
-			                <a href="/admin/board/list?searchBoard=${boardTypeMenu.bod_type}" class="nav-link">
-			                  <i class="far fa-circle nav-icon"></i>
-			                  <p>${boardTypeMenu.bod_name}</p>
-			                </a>
-			              </li>
-		              </c:forEach>
-		              <!-- <li class="nav-item">
-		                <a href="/admin/board/list?searchBoard=notice" class="nav-link">
-		                  <i class="far fa-circle nav-icon"></i>
-		                  <p>공지사항</p>
-		                </a>
-		              </li>
-		              <li class="nav-item">
-		                <a href="/admin/board/list?searchBoard=gallery" class="nav-link">
-		                  <i class="far fa-circle nav-icon"></i>
-		                  <p>겔러리</p>
-		                </a>
-		              </li> -->
-	            </ul>
+               <ul class="nav nav-treeview">
+                    <c:forEach items="${boardTypeMenu}" var="boardTypeMenu" >
+                       <li class="nav-item">
+                         <a href="/admin/board/list?searchBoard=${boardTypeMenu.bod_type}" class="nav-link">
+                           <i class="far fa-circle nav-icon"></i>
+                           <p>${boardTypeMenu.bod_name}</p>
+                         </a>
+                       </li>
+                    </c:forEach>
+                    <!-- <li class="nav-item">
+                      <a href="/admin/board/list?searchBoard=notice" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>공지사항</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="/admin/board/list?searchBoard=gallery" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>겔러리</p>
+                      </a>
+                    </li> -->
+               </ul>
               </li>
               
             </ul>
