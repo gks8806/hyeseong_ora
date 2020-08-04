@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.apache.ibatis.session.SqlSession;
+import org.edu.vo.BoardTypeVO;
 import org.edu.vo.BoardVO;
 import org.edu.vo.PageVO;
 import org.springframework.stereotype.Repository;
@@ -46,8 +47,8 @@ public class BoardDAOImpl implements IF_BoardDAO {
 
 	@Override
 	public void insertAttach(String fullName, Integer bno) throws Exception {
-		Map<String, Object> paramMap = new HashMap<String, Object>(); //매개변수 2개인 값을 넣기위해
-		paramMap.put("bno", bno);//paramMap 변수지정해서 메서드구현
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("bno", bno);
 		paramMap.put("fullname", fullName);
 		sqlSession.insert(mapperQuery + ".insertAttach", paramMap);
 	}
@@ -60,16 +61,14 @@ public class BoardDAOImpl implements IF_BoardDAO {
 	@Override
 	public void deleteAttach(Integer bno) throws Exception {
 		sqlSession.delete(mapperQuery + ".deleteAttach", bno);
-		
 	}
 
 	@Override
-	public void upadteAttach(String fullName, Integer bno) throws Exception {
-		Map<String, Object> paramMap = new HashMap<String, Object>(); //매개변수 2개인 값을 넣기위해
-		paramMap.put("bno", bno);//paramMap 변수지정해서 메서드구현
+	public void updateAttach(String fullName, Integer bno) throws Exception {
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("bno", bno);
 		paramMap.put("fullname", fullName);
 		sqlSession.insert(mapperQuery + ".updateAttach", paramMap);
-		
 	}
 
 	@Override
@@ -84,8 +83,7 @@ public class BoardDAOImpl implements IF_BoardDAO {
 
 	@Override
 	public void deleteBoardReply(Integer bno) throws Exception {
-		sqlSession.delete(mapperQuery + ".deleteBoardReply" , bno);
-		
+		sqlSession.delete(mapperQuery + ".deleteBoardReply", bno);
 	}
 
 	@Override
@@ -93,6 +91,25 @@ public class BoardDAOImpl implements IF_BoardDAO {
 		return sqlSession.selectOne(mapperQuery + ".selectTopBno");
 	}
 
-	
+	@Override
+	public List<BoardTypeVO> selectBoardType() throws Exception {
+		return sqlSession.selectList(mapperQuery + ".selectBoardType");
+	}
+
+	@Override
+	public void deleteBoardType(String bod_type) throws Exception {
+		sqlSession.delete(mapperQuery + ".deleteBoardType", bod_type);
+	}
+
+	@Override
+	public void updateBoardType(BoardTypeVO boardTypeVO) throws Exception {
+		sqlSession.update(mapperQuery + ".updateBoardType", boardTypeVO);
+	}
+
+	@Override
+	public void insertBoardType(BoardTypeVO boardTypeVO) throws Exception {
+		sqlSession.insert(mapperQuery + ".insertBoardType", boardTypeVO);
+	}
+
 	
 }
