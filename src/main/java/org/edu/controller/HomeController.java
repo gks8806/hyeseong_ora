@@ -25,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -51,6 +52,72 @@ public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 	
+	/**
+    * 회원관리 > 등록 입니다.
+    * @throws Exception 
+    */
+   @RequestMapping(value = "/mypage/insert", method = RequestMethod.GET)
+   public String memberWrite(Locale locale, Model model) throws Exception {
+      
+      return "mypage/mypage_insert";
+   }
+   @RequestMapping(value = "/mypage/insert", method = RequestMethod.POST)
+   public String memberWrite(@Valid MemberVO memberVO, Locale locale, RedirectAttributes rdat) throws Exception {
+      String new_pw = memberVO.getUser_pw(); //1234
+      if(new_pw !="") {
+       //스프링 시큐리티 4.x BCryptPasswordEncoder 암호화 사용
+           BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder(10);
+           String bcryptPassword = bcryptPasswordEncoder.encode(new_pw);//예, 1234 -> 암호화 처리됨
+           memberVO.setUser_pw(bcryptPassword); //DB에 들어가기전 값 set 시킴   
+    }     
+      memberService.insertMember(memberVO);
+      rdat.addFlashAttribute("msg", "회원가입");
+      return "redirect:/";
+   }
+   
+   /**
+    * 회원관리 > 수정 입니다.
+    * @throws Exception 
+    */
+   @RequestMapping(value = "/mypage/update", method = RequestMethod.GET)
+   public String memberUpdate(HttpServletRequest request, Locale locale, Model model) throws Exception {
+      HttpSession session = request.getSession();
+	  MemberVO memberVO = memberService.viewMember((String) session.getAttribute("session_userid"));
+      model.addAttribute("memberVO", memberVO);
+      return "mypage/mypage_update";
+   }
+   @RequestMapping(value = "/mypage/update", method = RequestMethod.POST)
+   public String memberUpdate(MemberVO memberVO, Locale locale, RedirectAttributes rdat) throws Exception {
+      String new_pw = memberVO.getUser_pw(); //예를 들면1234
+      if(new_pw !="") {
+       //스프링 시큐리티 4.x BCryptPasswordEncoder 암호사용
+           BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder(10);
+           String bcryptPassword = bcryptPasswordEncoder.encode(new_pw);//예, 1234 -> 암호화 처리됨
+           memberVO.setUser_pw(bcryptPassword); //DB에 들어가기전 값 set 시킴   
+    }
+     memberService.updateMember(memberVO);
+      rdat.addFlashAttribute("msg", "회원정보 수정");
+      return "redirect:/mypage/update";
+   }
+   
+   /**
+    * 회원관리 > 회원탈퇴 입니다.
+    * @throws Exception 
+    */
+   @RequestMapping(value = "/mypage/delete", method = RequestMethod.POST)
+   public String memberDelete(MemberVO memberVO, Locale locale, RedirectAttributes rdat) throws Exception {
+      String new_pw = memberVO.getUser_pw(); //예를 들면1234
+      if(new_pw !="") {
+    	   //스프링 시큐리티 4.x BCryptPasswordEncoder 암호사용
+           BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder(10);
+           String bcryptPassword = bcryptPasswordEncoder.encode(new_pw);//예, 1234 -> 암호화 처리됨
+           memberVO.setUser_pw(bcryptPassword); //DB에 들어가기전 값 set 시킴   
+	    }
+	    memberVO.setEnabled(false);//회원정보 사용중지 아이디 지정
+	    memberService.updateMember(memberVO);
+	    rdat.addFlashAttribute("msg", "회원정보 수정");
+	    return "redirect:/logout";
+   }
 	/**
 	 * 게시물관리 > 삭제 입니다.
 	 * @throws Exception 
