@@ -34,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
-
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -47,6 +46,36 @@ public class AdminController {
    
    @Inject
    private FileDataUtil fileDataUtil;
+   
+   /**
+    * 회원아이디 체크 RestAPI 입니다. @ResponseBody 사용됌
+    * @throws Exception 
+    */
+   @RequestMapping(value = "/member/idcheck", method = RequestMethod.GET)
+   @ResponseBody
+   public int idCheck(@RequestParam("user_id") String user_id) throws Exception {
+	  MemberVO memberVO = memberService.viewMember(user_id); 
+      int check = 0;//쿼리 결과값이 존재하는지 체크하는 변수
+      if(memberVO!=null) {
+    	  check=1;
+      }
+      return check;
+   }
+   
+   /**
+    * 게시판아이디 체크 RestAPI 입니다. @ResponseBody 사용됌
+    * @throws Exception 
+    */
+   @RequestMapping(value = "/bodtype/bodtype_check", method = RequestMethod.GET)
+   @ResponseBody
+   public int bodTypeCheck(@RequestParam("bod_type") String bod_type, Locale locale, Model model) throws Exception {
+      BoardTypeVO boardTypeVO = boardService.viewBoardType(bod_type);
+      int check = 0;//쿼리 결과값이 존재하는지 체크하는 변수
+      if(boardTypeVO!=null) {
+    	  check=1;
+      }
+      return check;
+   }
    
    /**
     * 게시판생성 insert 입니다.
