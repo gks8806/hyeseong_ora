@@ -1,6 +1,9 @@
 package org.edu.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -9,6 +12,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
@@ -52,7 +56,28 @@ public class FileDataUtil {
 		response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
 		return new FileSystemResource(file);
 	}
-		
+	
+	/*
+	 * 게시물 이미지일때 미리보기 메서드 구현(IE, 크롬에서 공통)
+	 */
+	@RequestMapping(value="/image_preview",method=RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
+	@ResponseBody
+	public byte[] imagePreview(@RequestParam("filename") String fileName, HttpServletResponse response) throws IOException {
+		FileInputStream fis = null;//변수초기화
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();//인스턴스 변수생성 사용가능한 클래스를 변수로 만드는거
+		fis = new FileInputStream(uploadpath + "/" + fileName);
+		int readCount = 0;
+		byte[] buffer = new byte[1024];
+		byte[] fileArray = null;
+		while((readCount = fis.read(buffer)) != -1) {
+			baos.write(buffer,0,readCount);
+		}
+		fileArray = baos.toByteArray();//자료변환 후 변수에저장, 형변환한 것을 fileArray로 넣는다.
+		fis.close();
+		baos.close();
+		return fileArray;
+	}
+	
 	/**
 	 * 파일 업로드 메서드(공통)	
 	 * @throws IOException 
