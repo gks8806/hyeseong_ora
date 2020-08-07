@@ -71,6 +71,13 @@ public class FileDataUtil {
 		byte[] fileArray = null;
 		while((readCount = fis.read(buffer)) != -1) {
 			baos.write(buffer,0,readCount);
+			/*
+		      buffer = 버퍼데이터(파일내용) byte[]
+		      off(0) = 버퍼데이터의 0부터 시작 오프셋
+		      - 옵셋(offset): bottom offset 화면하단기준에서 더해진 값.
+		           top offset 화면상단에서 얼마큼 거리
+		           readCount = 쓸 바이트 수 (int) = 버퍼데이터크기만큼
+		    */
 		}
 		fileArray = baos.toByteArray();//자료변환 후 변수에저장, 형변환한 것을 fileArray로 넣는다.
 		fis.close();

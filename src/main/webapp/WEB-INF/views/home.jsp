@@ -80,7 +80,7 @@
 					<!-- 첨부파일이 있는데 이미지일때와 이미지가 아닐때 choose-->
 					<c:choose>
 						<c:when test="${fn:containsIgnoreCase(extNameArray, ext)}">
-							<img src="/download?filename=${boardVO.files[0]}" title="첨부파일 이미지" style="width:100%;">
+							<img src="/image_preview?filename=${boardVO.files[0]}" title="첨부파일 이미지" style="width:100%;">
 						</c:when>
 						<c:otherwise>
 							<img class="img_topplace" src="/resources/home/img/img_topplace01.jpg" alt="이미지없음" />
