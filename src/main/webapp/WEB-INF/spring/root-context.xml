@@ -107,7 +107,7 @@
 	 <!-- testJob 아이디를 실행하는 스케줄(일정) -->
 	 <bean id="testJobTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
 	 	<property name="jobDetail" ref="testJob"></property>
-	 	<!-- 톰캣을 시작하고 1분에 실행(단위: 밀리초) -->
+	 	<!-- 톰캣을 시작하고 1분에 실행(단위: 밀리초) 864000000-->
 	 	<property name="startDelay" value="864000000"></property>
 	 	<!-- 인터벌 변수값 set: 매 1분마다 testJob 아이디를 실행 -->
 	 	<property name="repeatInterval" value="864000000"></property>

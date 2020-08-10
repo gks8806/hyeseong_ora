@@ -49,8 +49,16 @@ public class MemberServiceImpl implements IF_MemberService {
 
 	@Override
 	public List<MemberVO> testJobMethod() throws Exception {
+		List<MemberVO> list = memberDAO.testJobMethod();//memberDAO.testJobMethod()를 List<MemberVO> list로 재정의 시간단축위해
 		//실행 상황 확인
-		System.out.println(memberDAO.testJobMethod());
+		System.out.println(list);
+		//6개월동안 회원정보 수정을 안한 회원을 휴먼 계정으로 업데이트(아래)
+		System.out.println("==========6개월간 회원정보수정 안한 회원 휴면계정으로 전환");
+		//memberDAO.testJobMethod()에서 뽑와서 vo로 
+		for(MemberVO vo:list) {
+			vo.setEnabled(false);//enable = false로 셋//휴먼계정으로 변경(SET)
+			memberDAO.updateMember(vo);
+		}
 		return memberDAO.testJobMethod();
 	}
 
